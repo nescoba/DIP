@@ -1,0 +1,187 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+data <- t(read.csv("10G.csv", header=FALSE))
+```
+
+
+```{r}
+ex.data <- data[1, 1:100]
+ex.data
+```
+
+```{r}
+plot(ex.data)
+```
+
+## Implementing vanilla SINDy
+
+```{r}
+d.ex.data <- diff(ex.data)[2:100]
+plot(d.ex.data, type="l")
+```
+```{r}
+ex.data <- ex.data[2:100]
+ex.data
+```
+
+```{r}
+model <- lm( d.ex.data ~ poly(ex.data, 3))
+summary(model)
+```
+
+
+```{r}
+plot(model$fitted.values, type="l")
+```
+
+```{r}
+plot(cumsum(model$fitted.values), type="l")
+```
+
+What these plots tell me is that the evolution before the $t=40$ mark is different from that after the $t=40$ mark
+
+
+
+
+
+
+
+
+## Restricting to $t<40$
+
+
+```{r}
+ex.data <- data[1, 1:40]
+ex.data
+```
+
+```{r}
+plot(ex.data, type="l")
+```
+
+## Implementing vanilla SINDy
+
+```{r}
+d.ex.data <- diff(ex.data)[2:40]
+plot(d.ex.data, type="l")
+```
+
+```{r}
+ex.data <- ex.data[2:40]
+ex.data
+```
+
+```{r}
+model <- lm( d.ex.data ~ poly(ex.data, 3))
+summary(model)
+```
+
+```{r}
+plot(model$residuals)
+```
+
+```{r}
+plot(model$fitted.values, type="l")
+```
+
+```{r}
+plot(data[1,1]+cumsum(model$fitted.values), type="l")
+points(ex.data[2:40])
+```
+
+
+
+
+
+
+
+
+
+
+## Trying more polynomial features
+
+
+
+```{r}
+d.ex.data <- diff(ex.data)[2:40]
+plot(d.ex.data, type="l")
+```
+
+```{r}
+ex.data <- ex.data[2:40]
+ex.data
+```
+
+```{r}
+model <- lm( d.ex.data ~ poly(ex.data,5))
+summary(model)
+```
+
+```{r}
+plot(model$residuals)
+```
+
+```{r}
+plot(model$fitted.values, type="l")
+```
+
+```{r}
+plot(cumsum(model$fitted.values), type="l")
+points(ex.data[2:40])
+```
+
+
+
+
+
+## After the $t=40$ mark
+
+
+```{r}
+ex.data <- data[1, 1:100]
+ex.data
+```
+
+
+
+
+```{r}
+d.ex.data <- diff(ex.data)[41:100]
+plot(d.ex.data, type="l")
+```
+
+```{r}
+ex.data <- ex.data[41:100]
+ex.data
+```
+
+```{r}
+model <- lm( d.ex.data ~ poly(ex.data,3))
+summary(model)
+```
+
+```{r}
+plot(model$residuals)
+```
+
+```{r}
+plot(model$fitted.values, type="l")
+```
+
+```{r}
+plot(data[1, 40] + cumsum(model$fitted.values), type="l", ylim=c(17,35))
+points(ex.data)
+```
+
+
+
+
+
+
+
