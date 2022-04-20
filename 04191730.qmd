@@ -1,0 +1,141 @@
+---
+title: "04191726"
+format: html
+editor: visual
+---
+
+# Data handling 
+
+We download the data and look at its dimensions
+
+```{r}
+data <- t(read.csv("10G.csv", header=FALSE))
+dim(data)
+```
+
+For each cell, we compute the 'super-Vanilla SINDy' regression and store the coefficients in two vectors, `coeffs1` and `coeffs2`. We also store the p-values of the coefficients in vectors `pvals1` and `pvals2` and the `r.squared` of each regression. 
+
+```{r}
+#| message: false
+#| warning: false
+#| include: false
+
+coeffs1 <- vector(length = 11598)
+pvals1 <- vector(length = 11598)
+coeffs2 <- vector(length = 11598)
+pvals2 <- vector(length = 11598)
+rs.squared <- vector(length = 11598)
+for(i in 1:11598){
+  
+  # Save data in variable 
+  ex.data <- data[i, 1:40]
+  
+  # Differentiate and forget first entry
+  d.ex.data <- diff(ex.data)[2:40]
+  
+  # Forget first entry of the data
+  ex.data.cut <- data[i, 2:40]
+  
+  try(
+    # Create linear model 
+    {model <- lm( d.ex.data ~ poly(ex.data.cut, 3))
+    coeffs1[i] <- model$coefficients['poly(ex.data.cut, 3)1']
+    coeffs2[i] <- model$coefficients['poly(ex.data.cut, 3)2']
+    pvals1[i] <- summary(model)$coefficients['poly(ex.data.cut, 3)1', 'Pr(>|t|)']
+    pvals2[i] <- summary(model)$coefficients['poly(ex.data.cut, 3)2', 'Pr(>|t|)']
+    rs.squared[i] <- summary(model)$r.squared
+    }
+  )
+}
+```
+
+
+# Results
+
+## Linear term
+
+Here are the statistics for those vectors:
+
+```{r}
+boxplot(coeffs1)
+```
+
+<!-- # ```{r} -->
+<!-- # hist(coeffs1, breaks=100) -->
+<!-- # ``` -->
+
+```{r}
+summary(coeffs1)
+```
+
+<!--```{r} -->
+<!--boxplot(pvals1) -->
+<!--``` -->
+
+```{r}
+hist(pvals1)
+```
+
+
+
+```{r}
+summary(pvals1)
+```
+
+The situation is a little paradoxical. What we are seeing is that the coefficient for the linear term is very close to 0 in most of the cases. However, the standard error is usually small enough to make it statistically significant.   
+
+
+
+
+
+
+
+## Quadratic term 
+
+
+```{r}
+boxplot(coeffs2)
+```
+
+<!-- # ```{r} -->
+<!-- # hist(coeffs2, breaks=100) -->
+<!-- # ``` -->
+
+```{r}
+summary(coeffs2)
+```
+
+
+<!-- #  -->
+<!-- # ```{r} -->
+<!-- # boxplot(pvals2) -->
+<!-- # ``` -->
+<!-- #  -->
+
+```{r}
+hist(pvals2)
+```
+
+```{r}
+summary(pvals2)
+```
+
+The situation for the quadratic term is also not clear. This time, the first quartile is definitively negative, but the median is still 0. As in the linear term, the term is usually statistically significant. 
+
+
+```{r}
+boxplot(rs.squared)
+```
+
+```{r}
+summary(rs.squared)
+```
+
+## Overall Goodness of fit 
+
+```{r}
+hist(rs.squared)
+```
+
+This graph is worrying: most of the time, the fit of this SINDy procedure is quite poor. 
+
