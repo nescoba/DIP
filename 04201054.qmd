@@ -1,0 +1,110 @@
+---
+title: "04201052"
+format: html
+editor: visual
+---
+
+# Intro
+
+We saw in the previous file that when we perform vanilla SINDy in all cells, the picture is not clear. The coefficients and p-values are all over the place. And the regression is seriously under determined in a lot of the cases. So we restrict here to the cells for which the regression is succesful.  
+
+# Methods
+
+For each cell, we perform the SINDy regression. We then keep the results of only those for which $R^2 > 0.2$. 
+
+```{r}
+#| include: false
+data <- t(read.csv("10G.csv", header=FALSE))
+
+coeffs1 <- vector()
+pvals1 <- vector()
+coeffs2 <- vector()
+pvals2 <- vector()
+rs.squared <- vector()
+for(i in 1:11598){
+  
+  # Save data in variable 
+  ex.data <- data[i, 1:40]
+  
+  # Differentiate and forget first entry
+  d.ex.data <- diff(ex.data)[2:40]
+  
+  # Forget first entry of the data
+  ex.data.cut <- data[i, 2:40]
+  
+  try(
+    # Create linear model 
+    {model <- lm( d.ex.data ~ poly(ex.data.cut, 3))
+    if(summary(model)$r.squared > 0.2){
+      coeffs1 <- c(coeffs1, model$coefficients['poly(ex.data.cut, 3)1'])
+      coeffs2 <-c(coeffs2, model$coefficients['poly(ex.data.cut, 3)2'])
+      pvals1 <- c(pvals1, summary(model)$coefficients['poly(ex.data.cut, 3)1', 'Pr(>|t|)'])
+      pvals2 <- c(pvals2,summary(model)$coefficients['poly(ex.data.cut, 3)2', 'Pr(>|t|)'])
+      rs.squared <- c(rs.squared, summary(model)$r.squared)
+    }
+    }
+  )
+}
+```
+
+# Results
+
+## Linear Term
+
+<!-- ```{r} -->
+<!-- boxplot(pvals1) -->
+<!-- ``` -->
+
+```{r}
+hist(pvals1)
+```
+
+```{r}
+length(pvals1)
+```
+
+So the linear term is significant in about `r 100*(800/length(pvals1))` percent of the instances. 
+
+Additionally,
+
+```{r}
+summary(coeffs1)
+```
+
+So we cannot tell definitely the sign of the linear term, though there is some indication that it should be negative. 
+
+
+## Quadratic Term 
+
+```{r}
+hist(pvals2)
+```
+
+
+The quadratic term is significant about twice as frequently. 
+
+```{r}
+summary(coeffs2)
+```
+
+We can be pretty confident that the sign of the quadratic term is negative. Plus the median seems like a reasonable estimate for the coefficient. 
+
+## Goodness of fit 
+
+Of course, this is biased, but FWIW:
+
+```{r}
+hist(rs.squared)
+```
+
+
+
+
+
+
+
+
+
+
+
+
